@@ -89,6 +89,68 @@ describe('adding a new blog', () => {
     })
 })
 
+describe('deleting a blog', () => {
+    test('succeeds with a valid id', async () => {
+        const blogsInDb = await helper.blogsInDb()
+
+        await api
+            .delete(`/api/blogs/${blogsInDb[0].id}`)
+            .expect(204)
+
+        const blogsAtEndInDb = await helper.blogsInDb()
+        expect(blogsAtEndInDb.length).toBe(blogsInDb.length - 1)
+
+        const titles = blogsAtEndInDb.map(blog => blog.title)
+        expect(titles).not.toContain(blogsInDb[0].title)
+    })
+    test('fails with invalid id', async () => {
+        const id = await helper.nonExistingId()
+        const blogsInDb = await helper.blogsInDb()
+
+        await api
+            .delete(`/api/blogs/${id}`)
+            .expect(400)
+
+        const blogsAtEndInDb = await helper.blogsInDb()
+        expect(blogsInDb.length).toBe(blogsAtEndInDb.length)
+    })
+})
+
+describe('updating likes of a blog', () => {
+    test('succeeds with valid id and data', async () => {
+        const blogsInDb = await helper.blogsInDb()
+        const blogToUpdate = blogsInDb[0]
+        const blog = {
+            likes: 99
+        }
+
+        await api
+            .put(`/api/blogs/${blogToUpdate.id}`)
+            .send(blog)
+            .expect(200)
+
+        const blogsAtEndInDb = await helper.blogsInDb()
+        const updatedBlog = await blogsAtEndInDb.find(
+            blog => blog.title === blogToUpdate.title)
+        expect(updatedBlog.likes).toBe(99)
+    })
+    test('fails with invalid id', async () => {
+        const blogsInDb = await helper.blogsInDb()
+        const id = await helper.nonExistingId()
+        const blog = {
+            likes: 99
+        }
+
+        await api
+            .put(`/api/blogs/${id}`)
+            .send(blog)
+            .expect(400)
+
+        const blogsAtEndInDb = await helper.blogsInDb()
+        expect(blogsInDb).toEqual(blogsAtEndInDb)
+    })
+})
+
 afterAll(() => {
     mongoose.connection.close()
 })

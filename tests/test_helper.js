@@ -56,7 +56,23 @@ const blogsInDb = async () => {
     return blogs.map(blog => blog.toJSON())
 }
 
+// From the course material
+const nonExistingId = async () => {
+    const blog = new Blog({
+        title: 'title',
+        author: 'author',
+        url: 'url',
+        likes: 0
+    })
+
+    await blog.save()
+    await blog.remove()
+
+    return blog._id.toString()
+}
+
 module.exports = {
     initialBlogs,
-    blogsInDb
+    blogsInDb,
+    nonExistingId
 }
