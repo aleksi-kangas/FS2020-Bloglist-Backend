@@ -20,7 +20,8 @@ blogsRouter.post('/', async (req, res, next) => {
             title: req.body.title,
             author: req.body.author,
             likes: req.body.likes || 0,
-            user: user.id
+            user: user.id,
+            comments: req.body.comments || []
         })
         const savedBlog = await blog.save()
 
@@ -33,6 +34,27 @@ blogsRouter.post('/', async (req, res, next) => {
             .json(savedBlog.toJSON())
     } catch (exception) {
         next(exception)
+    }
+})
+
+blogsRouter.post('/:id/comments', async (req, res) => {
+    const blog = {
+        comments: req.body.comments
+    }
+
+    try {
+        const updatedBlog = await Blog.findByIdAndUpdate(
+          req.params.id, blog, {new: true})
+        if (updatedBlog) {
+            await res
+              .json(updatedBlog)
+              .status(200)
+        } else {
+            await res
+              .status(400).end()
+        }
+    } catch (exception) {
+        res.status(400).end()
     }
 })
 
